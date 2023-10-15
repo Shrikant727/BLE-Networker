@@ -61,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
     else{
       print('yo');
       await initMobileNumberState();
-      user_data.add(prefs.getInt('phone'));
+      user_data.add(prefs.getInt('phone')==null?1111111111:prefs.getInt('phone'));
       print(prefs.getInt('phone'));
     }
   }
@@ -69,28 +69,17 @@ class _MyHomePageState extends State<MyHomePage> {
     if (!await MobileNumber.hasPhonePermission) {
       await MobileNumber.requestPhonePermission;
     }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     try {
       var mobileNumber = (await MobileNumber.mobileNumber)!;
-      SharedPreferences prefs = await SharedPreferences.getInstance();
       print('Mobile number: ${mobileNumber}');
-      if(check==false) {
-        if(mobileNumber!=null) {
-          prefs.setInt('phone', int.parse(mobileNumber.substring(4)));
-        }
-        else{
-          prefs.setInt('phone',1111111111);
-        }
-        if (kDebugMode) {
-          print('Mobile number: $mobileNumber');
-        }
-      }
-      else{
-        prefs.setInt('phone',1111111111);
-      }
+      prefs.setInt('phone', int.parse(mobileNumber.substring(4)));
     }
     catch (e) {
       debugPrint(e.toString());
+      prefs.setInt('phone', 1111111111);
     }
+    user_data.add(prefs.getInt('phone'));
   }
   final FlutterBlePeripheral blePeripheral = FlutterBlePeripheral();
   Widget build(BuildContext context) {
@@ -230,6 +219,7 @@ Future<void> initializeService() async {
   var phone=prefs.getInt('phone');
   final flutterReactiveBle = FlutterReactiveBle();
   StreamSubscription<DiscoveredDevice>? subscription=flutterReactiveBle.scanForDevices(withServices: [Uuid.parse('bf27730d-860a-4e09-889c-2d8b6a9e0fe7')], scanMode: ScanMode.lowLatency).listen((device) {
+    print(device);
     var data=device.manufacturerData;
     var counter=data[2];
     if(phone!=null){
